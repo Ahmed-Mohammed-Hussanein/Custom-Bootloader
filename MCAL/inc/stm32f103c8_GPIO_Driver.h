@@ -5,8 +5,8 @@
  *      Author: Ahmed
  */
 
-#ifndef INC_STM32F103C6_GPIO_DRIVER_H_
-#define INC_STM32F103C6_GPIO_DRIVER_H_
+#ifndef INC_STM32F103C8_GPIO_DRIVER_H_
+#define INC_STM32F103C8_GPIO_DRIVER_H_
 
 // =============================================
 // ================== Includes =================
@@ -99,4 +99,4 @@ void MCAL_GPIO_togglePort(GPIO_TypeDef *GPIOx);
 
 
 
-#endif /* INC_STM32F103C6_GPIO_DRIVER_H_ */
+#endif /* INC_STM32F103C8_GPIO_DRIVER_H_ */

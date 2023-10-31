@@ -9,9 +9,9 @@
 // ================== Includes =================
 // =============================================
 
+#include <stm32f103c8_GPIO_Driver.h>
 #include "Platform_Types.h"
 
-#include "stm32f103c6_GPIO_Driver.h"
 
 /*
  * =====================================================================================
@@ -30,13 +30,16 @@
 
 void MCAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_PinConfig_t *pinConfig)
 {
-	uint8_t configRegister = pinConfig->GPIO_PinMode;
+	uint8_t configRegister;
 
 	if(pinConfig->GPIO_PinMode == GPIO_MODE_INPUT_PDR)
+	{
 		configRegister = GPIO_MODE_INPUT_PUR;
-
+	}
 	else
+	{
 		configRegister = pinConfig->GPIO_PinMode;
+	}
 
 
 	switch(pinConfig->GPIO_PinMode)
@@ -51,6 +54,9 @@ void MCAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_PinConfig_t *pinConfig)
 		SET_BIT(GPIOx->ODR, pinConfig->GPIO_PinNumber);
 //		GPIOx->ODR |= (1 << pinConfig->GPIO_PinNumber);
 
+		break;
+
+	default:
 		break;
 	}
 
@@ -94,6 +100,9 @@ void MCAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_PinConfig_t *pinConfig)
 //		GPIOx->CRH |= (uint32_t)configRegister << ((pinConfig->GPIO_PinNumber - 8) * 4);
 
 		break;
+
+	default:
+		break;
 	}
 }
 
@@ -114,7 +123,7 @@ void MCAL_GPIO_DeInit(GPIO_TypeDef *GPIOx)
 	{
 		RCC_GPIOB_RESET();
 	}
-	else if(GPIOx == GPIOC)
+	else
 	{
 		RCC_GPIOC_RESET();
 	}
@@ -140,6 +149,9 @@ void MCAL_GPIO_writePin(GPIO_TypeDef *GPIOx, uint8_t PinNumber, uint8_t value)
 
 		case GPIO_STATE_HIGH:
 			SET_BIT(GPIOx->ODR, PinNumber);
+			break;
+
+		default:
 			break;
 	}
 }

@@ -115,6 +115,7 @@
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 #define DBG_BASE				0xE0042000
 
+
 // =========================================================
 // ================== Peripheral Registers =================
 // =========================================================
@@ -515,10 +516,10 @@ typedef struct
 // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* TIMER 2 to 5 -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-#define _TIM2_						((TIMx_TypeDef*)TIM2_BASE)
-#define _TIM3_						((TIMx_TypeDef*)TIM3_BASE)
-#define _TIM4_						((TIMx_TypeDef*)TIM4_BASE)
-#define _TIM5_						((TIMx_TypeDef*)TIM5_BASE)
+#define TIM2						((TIMx_TypeDef*)TIM2_BASE)
+#define IM3							((TIMx_TypeDef*)TIM3_BASE)
+#define TIM4						((TIMx_TypeDef*)TIM4_BASE)
+#define TIM5						((TIMx_TypeDef*)TIM5_BASE)
 
 
 
@@ -526,6 +527,7 @@ typedef struct
 // -*-*-*-*-* CRC32 -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 #define CRC							((CRC_TypeDef*)CRC_BASE)
+
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* DBG -*-*-*-*-*

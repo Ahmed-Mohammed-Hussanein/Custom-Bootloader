@@ -10,8 +10,8 @@
 // ================== Includes =================
 // =============================================
 
-#include "stm32f103c6_RCC_Driver.h"
-#include "stm32f103c6_FLASH_Driver.h"
+#include <stm32f103c8_FLASH_Driver.h>
+#include <stm32f103c8_RCC_Driver.h>
 #include "Platform_Types.h"
 
 
@@ -82,16 +82,19 @@ void MCAL_Flash_Lock(void)
 	}
 }
 
-static void flash_program_halfWord(uint32_t address, uint16_t halfWord)
+static void flash_program_halfWord(uint16_t *address, uint16_t halfWord)
 {
 	// Set PG to select programming the flash
 	SET_BIT(FLASH->CR, PG);
 
 	// write the address
-	*(vuint16_t*)address = (uint16_t)halfWord;
+	*address = halfWord;
 
 	// wait until the operation performed
-	while(READ_BIT(FLASH->SR, BSY));
+	while(READ_BIT(FLASH->SR, BSY) == 1)
+	{
+
+	}
 
 	// Clear PG
 	CLEAR_BIT(FLASH->CR, PG);
@@ -116,7 +119,10 @@ void MCAL_FLASH_MassErase(void)
 	MCAL_Flash_UnLock();
 
 	// check if there is no operation --> check BSY flag.
-	while(READ_BIT(FLASH->SR, BSY) != 0);
+	while(READ_BIT(FLASH->SR, BSY) != 0)
+	{
+
+	}
 
 	// Set the MER bit in the FLASH_CR register.
 	SET_BIT(FLASH->CR, MER);
@@ -125,7 +131,10 @@ void MCAL_FLASH_MassErase(void)
 	SET_BIT(FLASH->CR, STRT);
 
 	// Wait for the BSY bit to be reset.
-	while(READ_BIT(FLASH->SR, BSY) != 0);
+	while(READ_BIT(FLASH->SR, BSY) != 0)
+	{
+
+	}
 
 	// clear the MER bit in the FLASH_CR register.
 	CLEAR_BIT(FLASH->CR, MER);
@@ -144,30 +153,30 @@ void MCAL_FLASH_MassErase(void)
  * @retval 			- None.
  * Note				- None.
  */
-void MCAL_FLASH_PageErase(uint32_t startPage, uint32_t numberOfPages)
+void MCAL_FLASH_PageErase(uint32_t address)
 {
-	uint32_t index;
-
 	// Unlock Flash
 	MCAL_Flash_UnLock();
 
 	// check if there is no operation --> check BSY flag.
-	while(READ_BIT(FLASH->SR, BSY) != 0);
+	while(READ_BIT(FLASH->SR, BSY) != 0)
+	{
+
+	}
 
 	// Set the PER bit in the FLASH_CR register.
 	SET_BIT(FLASH->CR, PER);
 
-	for(index = startPage; index < numberOfPages; index++)
+	// Program the FLASH_AR register to select a page to erase.
+	FLASH->AR = address;
+
+	// Set the STRT bit in the FLASH_CR register.
+	SET_BIT(FLASH->CR, STRT);
+
+	// Wait for the BSY bit to be reset.
+	while(READ_BIT(FLASH->SR, BSY) != 0)
 	{
-		// Program the FLASH_AR register to select a page to erase.
-//		FLASH->AR = address + index * FLASH_PAGES_OFFSET;
-		FLASH->AR	=	FLASH_PAGE_ADDRESS_MAP(index);
 
-		// Set the STRT bit in the FLASH_CR register.
-		SET_BIT(FLASH->CR, STRT);
-
-		// Wait for the BSY bit to be reset.
-		while(READ_BIT(FLASH->SR, BSY) != 0);
 	}
 
 	// Clear the PER bit in the FLASH_CR register.
@@ -183,21 +192,22 @@ void MCAL_FLASH_PageErase(uint32_t startPage, uint32_t numberOfPages)
 /**================================================================
  * @Fn				- MCAL_FLASH_Programming
  * @brief			- This is used to Write half word, word, or double word into the flash.
- * @param [in] 		- address: address in the flash to write the byte.
+ * @param [in] 		- address: address in the flash to write the data.
  * 					- Data	 : the data wanted to be written.
  * @retval 			- None.
- * Note				- None.
+ * Note				- You must first use HAL_FLASH_UnLock API.
  */
-void MCAL_FLASH_Programming(uint32_t address, uint64_t Data, uint8_t programmingType)
+void MCAL_FLASH_Programming(uint16_t *address, uint64_t Data, uint8_t programmingType)
 {
 	uint8_t nIterations = (programmingType == FLASH_PROGRAMMING_TYPE_HALF_WORD) ? 1 :
-			(programmingType == FLASH_PROGRAMMING_TYPE_WORD) ? 2 : 4;
+							(programmingType == FLASH_PROGRAMMING_TYPE_WORD) ? 2 : 4;
 
+	uint16_t *pAddress = address;
 
 	uint8_t i;
 	for(i = 0; i < nIterations; i++)
 	{
-		flash_program_halfWord((address +  i * 2), (uint16_t)(Data >> ( i * 16 )));
+		flash_program_halfWord(pAddress++, (Data >> (i * 16U)));
 	}
 
 	// Clear EOP
@@ -205,53 +215,14 @@ void MCAL_FLASH_Programming(uint32_t address, uint64_t Data, uint8_t programming
 }
 
 /**================================================================
- * @Fn				- MCAL_FLASH_WriteHalfWord
- * @brief			- This is used to Write Two byte into the flash.
- * @param [in] 		- address		: address in the flash to write the byte.
- * 					- _half_word	: the two byte wanted to be written.
+ * @Fn				- MCAL_FLASH_Read
+ * @brief			- This is used to read a word from the flash.
+ * @param [in] 		- address: address in the flash to read the word.
+ * 					- _word	 : a pointer to variable to store the read word.
  * @retval 			- None.
  * Note				- None.
  */
-void MCAL_FLASH_WriteHalfWord(uint32_t address, uint16_t _half_word)
-{
-	// Unlock Flash
-	MCAL_Flash_UnLock();
-
-	// Set PG to select programming the flash
-	SET_BIT(FLASH->CR, PG);
-
-	// write the address
-	*(uint16_t*)address = (uint16_t)_half_word;
-
-	// wait until the operation performed
-	while(READ_BIT(FLASH->SR, BSY));
-
-	// Clear PG
-	CLEAR_BIT(FLASH->CR, PG);
-
-	// Clear EOP
-	SET_BIT(FLASH->SR, EOP);
-
-	// lock the flash
-	MCAL_Flash_Lock();
-}
-
-/**================================================================
- * @Fn				- MCAL_FLASH_WriteWord
- * @brief			- This is used to Write Two byte into the flash.
- * @param [in] 		- address: address in the flash to write the byte.
- * 					- _word	 : the four byte wanted to be written.
- * @retval 			- None.
- * Note				- None.
- */
-void MCAL_FLASH_WriteWord(uint32_t address, uint32_t _word)
-{
-
-}
-
-
-
-void MCAL_FLASH_READ(uint32_t address, uint32_t *_word)
+void MCAL_FLASH_Read(uint32_t address, uint32_t *_word)
 {
 	*_word = *(vuint32_t*)address;
 }

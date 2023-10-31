@@ -8,8 +8,8 @@
 #ifndef GPIO_PERIPHERAL_PINS_H_
 #define GPIO_PERIPHERAL_PINS_H_
 
+#include <stm32f103c8_GPIO_Driver.h>
 #include "stm32f10xxx_device_header.h"
-#include "stm32f103c6_GPIO_Driver.h"
 
 // ==================================================================
 // =============================== USART ============================

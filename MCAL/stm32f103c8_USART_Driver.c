@@ -10,13 +10,13 @@
 // ================== Includes =================
 // =============================================
 
+#include <stm32f103c8_RCC_Driver.h>
+#include <stm32f103c8_USART_Driver.h>
 #include "Platform_Types.h"
 
 #include "stm32f10xxx_device_header.h"
 #include "GPIO_Peripheral_Pins.h"
-#include "stm32f103c6_GPIO_Driver.h"
-#include "stm32f103c6_RCC_Driver.h"
-#include "stm32f103c6_USART_Driver.h"
+#include "stm32f103c8_GPIO_Driver.h"
 
 /*
  * =====================================================================================
@@ -27,70 +27,70 @@
 #define NULL (void*)0
 
 /* SR */
-#define CTS				9
-#define LBD				8
-#define TXE				7
-#define TC				6
-#define RXNE			5
-#define IDLE			4
-#define ORE				3
-#define NE				2
-#define FE				1
-#define PE				0
+#define CTS				9U
+#define LBD				8U
+#define TXE				7U
+#define TC				6U
+#define RXNE			5U
+#define IDLE			4U
+#define ORE				3U
+#define NE				2U
+#define FE				1U
+#define PE				0U
 
 
 /* CR1 */
-#define UE				13
-#define M				12
-#define WAKE			11
-#define PCE				10
-#define PS				9
-#define PEIE			8
-#define TXEIE			7
-#define TCIE			6
-#define RXNEIE			5
-#define IDLEIE			4
-#define TE				3
-#define RE				2
-#define RWU				1
-#define SBK				0
+#define UE				13U
+#define M				12U
+#define WAKE			11U
+#define PCE				10U
+#define PS				9U
+#define PEIE			8U
+#define TXEIE			7U
+#define TCIE			6U
+#define RXNEIE			5U
+#define IDLEIE			4U
+#define TE				3U
+#define RE				2U
+#define RWU				1U
+#define SBK				0U
 
 /* CR2 */
-#define LINEN			14
-#define STOP1			13
-#define STOP0			12
-#define CLKEN			11
-#define CPOL			10
-#define CPHA			9
-#define LBCL			8
-#define LBDIE			6
-#define LBDL			5
-#define ADD3			3
-#define ADD2			2
-#define ADD1			1
-#define ADD0			0
+#define LINEN			14U
+#define STOP1			13U
+#define STOP0			12U
+#define CLKEN			11U
+#define CPOL			10U
+#define CPHA			9U
+#define LBCL			8U
+#define LBDIE			6U
+#define LBDL			5U
+#define ADD3			3U
+#define ADD2			2U
+#define ADD1			1U
+#define ADD0			0U
 
 /* CR3 */
-#define CTSIE			10
-#define CTSE			9
-#define RTSE			8
-#define DMAT			7
-#define DMAR			6
-#define SCEN			5
-#define NACK			4
-#define HDSEL			3
-#define IRPL			2
-#define IREN			1
-#define EIE				0
+#define CTSIE			10U
+#define CTSE			9U
+#define RTSE			8U
+#define DMAT			7U
+#define DMAR			6U
+#define SCEN			5U
+#define NACK			4U
+#define HDSEL			3U
+#define IRPL			2U
+#define IREN			1U
+#define EIE				0U
 
 
 
-#define USARTDIV(_PCLK_, _BAUD_)				(uint32_t) (_PCLK_/(16 * _BAUD_ ))
-#define USARTDIV_MUL100(_PCLK_, _BAUD_)			(uint32_t) ((25 * _PCLK_ ) / (4 * _BAUD_))
-#define Mantissa_MUL100(_PCLK_, _BAUD_)			(uint32_t) (USARTDIV(_PCLK_, _BAUD_) * 100)
+#define USARTDIV(_PCLK_, _BAUD_)				(uint32_t) ((_PCLK_)/(16U * (_BAUD_) ))
+#define USARTDIV_MUL100(_PCLK_, _BAUD_)			(uint32_t) ((25U * (_PCLK_) ) / (4U * (_BAUD_)))
+#define Mantissa_MUL100(_PCLK_, _BAUD_)			(uint32_t) (USARTDIV(_PCLK_, _BAUD_) * 100U)
 #define Mantissa(_PCLK_, _BAUD_)				(uint32_t) (USARTDIV(_PCLK_, _BAUD_ ))
-#define DIV_Fraction(_PCLK_, _BAUD_)			(uint32_t) (((USARTDIV_MUL100(_PCLK_, _BAUD_) - Mantissa_MUL100(_PCLK_, _BAUD_) )*16) / 100)
-#define UART_BRR_Register(_PCLK_, _BAUD_)		(( Mantissa (_PCLK_, _BAUD_ ) ) << 4 )|((DIV_Fraction(_PCLK_, _BAUD_)) & 0xF )
+#define DIV_Fraction(_PCLK_, _BAUD_)			(uint32_t) (((USARTDIV_MUL100(_PCLK_, _BAUD_) - Mantissa_MUL100(_PCLK_, _BAUD_) )*16U) / 100U)
+#define UART_BRR_Register(_PCLK_, _BAUD_)		(( Mantissa (_PCLK_, _BAUD_ ) ) << 4U )|((DIV_Fraction(_PCLK_, _BAUD_)) & 0xFU )
 
 /*
  * =====================================================================================
@@ -108,19 +108,20 @@
  */
 void MCAL_USART_Init(USART_TypeDef *USARTx, USART_Config_t *config)
 {
-	uint32_t pclk, BRR;
+	uint32_t pclk;
+	uint32_t BRR;
 
 	// configure the word length.
 	WRITE_BIT(USARTx->CR1, M, config->USART_wordLength);
 
 	// configure the parity bit.
-	WRITE_MASK_POS(USARTx->CR1, 0x3, PS, config->USART_parityBit);
+	WRITE_MASK_POS(USARTx->CR1, 0x3U, PS, config->USART_parityBit);
 
 	// configure the stop bit.
-	WRITE_MASK_POS(USARTx->CR2, 0x3, STOP0, config->USART_stopBit);
+	WRITE_MASK_POS(USARTx->CR2, 0x3U, STOP0, config->USART_stopBit);
 
 	// configure the hardware flow control.
-	WRITE_MASK_POS(USARTx->CR3, 0x3, RTSE, config->USART_hardwareFlowControl);
+	WRITE_MASK_POS(USARTx->CR3, 0x3U, RTSE, config->USART_hardwareFlowControl);
 
 	// configure the interrupts
 	if(config->USART_interruptEnable != USART_IRQ_ENABLE_NONE)
@@ -129,15 +130,19 @@ void MCAL_USART_Init(USART_TypeDef *USARTx, USART_Config_t *config)
 
 		if(USARTx == USART1)
 		{
-			SET_BIT(NVIC->ISER1, 37-32);
+			SET_BIT(NVIC->ISER1, 37U-32U);
 		}
 		else if(USARTx == USART2)
 		{
-			SET_BIT(NVIC->ISER1, 38-32);
+			SET_BIT(NVIC->ISER1, 38U-32U);
 		}
 		else if(USARTx == USART3)
 		{
-			SET_BIT(NVIC->ISER1, 39-32);
+			SET_BIT(NVIC->ISER1, 39U-32U);
+		}
+		else
+		{
+
 		}
 	}
 
@@ -149,7 +154,7 @@ void MCAL_USART_Init(USART_TypeDef *USARTx, USART_Config_t *config)
 	USARTx->BRR 	= BRR;
 
 	// configure USART MODE
-	WRITE_MASK_POS(USARTx->CR1, 0x3, RE, config->USART_Mode);
+	WRITE_MASK_POS(USARTx->CR1, 0x3U, RE, config->USART_Mode);
 }
 
 /**================================================================
@@ -173,11 +178,14 @@ void MCAL_USART_DeInit(USART_TypeDef *USARTx)
 	{
 		MCAL_RCC_APB1_resetPeripheral(RCC_APB1_PERIPHERAL_USART3);
 	}
+	else
+	{
+
+	}
 }
 
 void MCAL_USART_clockEnable(USART_TypeDef *USARTx)
 {
-
 	if(USARTx == USART1)
 	{
 		MCAL_RCC_APB2_enableClock(RCC_APB2_PERIPHERAL_USART1);
@@ -189,6 +197,10 @@ void MCAL_USART_clockEnable(USART_TypeDef *USARTx)
 	else if(USARTx == USART3)
 	{
 		MCAL_RCC_APB1_enableClock(RCC_APB1_PERIPHERAL_USART3);
+	}
+	else
+	{
+
 	}
 }
 
@@ -206,29 +218,29 @@ void MCAL_USART_GPIO_setPins(USART_TypeDef *USARTx)
 	{
 		// configure TX PA9
 		pin.GPIO_PinMode		= GPIO_MODE_OUTPUT_AF_PP_2MHz;
-		pin.GPIO_PinNumber		= GPIO_PIN_9;
-		MCAL_GPIO_Init(GPIOA, &pin);
+		pin.GPIO_PinNumber		= USART1_TX;
+		MCAL_GPIO_Init(USART1_PORT, &pin);
 
 		// configure RX PA10
 		pin.GPIO_PinMode		= GPIO_MODE_INPUT_FLOATING;
-		pin.GPIO_PinNumber		= GPIO_PIN_10;
-		MCAL_GPIO_Init(GPIOA, &pin);
+		pin.GPIO_PinNumber		= USART1_RX;
+		MCAL_GPIO_Init(USART1_PORT, &pin);
 
-		uint8_t HW_flowControl = READ_MASK_POS(USARTx->CR3, 0x3, RTSE);
-		if(HW_flowControl == USART_FLOW_CONTROL_RTS || HW_flowControl == USART_FLOW_CONTROL_RTS_CTS)
+		uint8_t HW_flowControl = READ_MASK_POS(USARTx->CR3, 0x3U, RTSE);
+		if((HW_flowControl == USART_FLOW_CONTROL_RTS) || (HW_flowControl == USART_FLOW_CONTROL_RTS_CTS))
 		{
 			// configure RTS PA12
 			pin.GPIO_PinMode		= GPIO_MODE_OUTPUT_AF_PP_2MHz;
-			pin.GPIO_PinNumber		= GPIO_PIN_12;
-			MCAL_GPIO_Init(GPIOA, &pin);
+			pin.GPIO_PinNumber		= USART1_RTS;
+			MCAL_GPIO_Init(USART1_PORT, &pin);
 		}
 
-		if(HW_flowControl == USART_FLOW_CONTROL_CTS || HW_flowControl == USART_FLOW_CONTROL_RTS_CTS)
+		if((HW_flowControl == USART_FLOW_CONTROL_CTS) || (HW_flowControl == USART_FLOW_CONTROL_RTS_CTS))
 		{
 			// configure CTS PA11
 			pin.GPIO_PinMode		= GPIO_MODE_INPUT_FLOATING;
-			pin.GPIO_PinNumber		= GPIO_PIN_11;
-			MCAL_GPIO_Init(GPIOA, &pin);
+			pin.GPIO_PinNumber		= USART1_CTS;
+			MCAL_GPIO_Init(USART1_PORT, &pin);
 		}
 	}
 
@@ -236,29 +248,29 @@ void MCAL_USART_GPIO_setPins(USART_TypeDef *USARTx)
 	{
 		// configure TX PA2
 		pin.GPIO_PinMode		= GPIO_MODE_OUTPUT_AF_PP_2MHz;
-		pin.GPIO_PinNumber		= GPIO_PIN_2;
-		MCAL_GPIO_Init(GPIOA, &pin);
+		pin.GPIO_PinNumber		= USART2_TX;
+		MCAL_GPIO_Init(USART2_PORT, &pin);
 
 		// configure RX PA3
 		pin.GPIO_PinMode		= GPIO_MODE_INPUT_FLOATING;
-		pin.GPIO_PinNumber		= GPIO_PIN_3;
-		MCAL_GPIO_Init(GPIOA, &pin);
+		pin.GPIO_PinNumber		= USART2_RX;
+		MCAL_GPIO_Init(USART2_PORT, &pin);
 
-		uint8_t HW_flowControl = READ_MASK_POS(USARTx->CR3, 0x3, RTSE);
-		if(HW_flowControl == USART_FLOW_CONTROL_RTS || HW_flowControl == USART_FLOW_CONTROL_RTS_CTS)
+		uint8_t HW_flowControl = READ_MASK_POS(USARTx->CR3, 0x3U, RTSE);
+		if((HW_flowControl == USART_FLOW_CONTROL_RTS) || (HW_flowControl == USART_FLOW_CONTROL_RTS_CTS))
 		{
 			// configure RTS PA1
 			pin.GPIO_PinMode		= GPIO_MODE_OUTPUT_AF_PP_2MHz;
-			pin.GPIO_PinNumber		= GPIO_PIN_1;
-			MCAL_GPIO_Init(GPIOA, &pin);
+			pin.GPIO_PinNumber		= USART2_RTS;
+			MCAL_GPIO_Init(USART2_PORT, &pin);
 		}
 
-		if(HW_flowControl == USART_FLOW_CONTROL_CTS || HW_flowControl == USART_FLOW_CONTROL_RTS_CTS)
+		if((HW_flowControl == USART_FLOW_CONTROL_CTS) || (HW_flowControl == USART_FLOW_CONTROL_RTS_CTS))
 		{
 			// configure CTS PA0
 			pin.GPIO_PinMode		= GPIO_MODE_INPUT_FLOATING;
-			pin.GPIO_PinNumber		= GPIO_PIN_0;
-			MCAL_GPIO_Init(GPIOA, &pin);
+			pin.GPIO_PinNumber		= USART2_CTS;
+			MCAL_GPIO_Init(USART2_PORT, &pin);
 		}
 	}
 
@@ -266,30 +278,34 @@ void MCAL_USART_GPIO_setPins(USART_TypeDef *USARTx)
 	{
 		// configure TX PB10
 		pin.GPIO_PinMode		= GPIO_MODE_OUTPUT_AF_PP_2MHz;
-		pin.GPIO_PinNumber		= GPIO_PIN_10;
-		MCAL_GPIO_Init(GPIOB, &pin);
+		pin.GPIO_PinNumber		= USART3_TX;
+		MCAL_GPIO_Init(USART3_PORT, &pin);
 
 		// configure RX PB11
 		pin.GPIO_PinMode		= GPIO_MODE_INPUT_FLOATING;
-		pin.GPIO_PinNumber		= GPIO_PIN_11;
-		MCAL_GPIO_Init(GPIOB, &pin);
+		pin.GPIO_PinNumber		= USART3_RX;
+		MCAL_GPIO_Init(USART3_PORT, &pin);
 
-		uint8_t HW_flowControl = READ_MASK_POS(USARTx->CR3, 0x3, RTSE);
-		if(HW_flowControl == USART_FLOW_CONTROL_RTS || HW_flowControl == USART_FLOW_CONTROL_RTS_CTS)
+		uint8_t HW_flowControl = READ_MASK_POS(USARTx->CR3, 0x3U, RTSE);
+		if((HW_flowControl == USART_FLOW_CONTROL_RTS) || (HW_flowControl == USART_FLOW_CONTROL_RTS_CTS))
 		{
 			// configure RTS PB14
 			pin.GPIO_PinMode		= GPIO_MODE_OUTPUT_AF_PP_2MHz;
-			pin.GPIO_PinNumber		= GPIO_PIN_14;
-			MCAL_GPIO_Init(GPIOB, &pin);
+			pin.GPIO_PinNumber		= USART3_RTS;
+			MCAL_GPIO_Init(USART3_PORT, &pin);
 		}
 
-		if(HW_flowControl == USART_FLOW_CONTROL_CTS || HW_flowControl == USART_FLOW_CONTROL_RTS_CTS)
+		if((HW_flowControl == USART_FLOW_CONTROL_CTS) || (HW_flowControl == USART_FLOW_CONTROL_RTS_CTS))
 		{
 			// configure CTS PB13
 			pin.GPIO_PinMode		= GPIO_MODE_INPUT_FLOATING;
-			pin.GPIO_PinNumber		= GPIO_PIN_13;
-			MCAL_GPIO_Init(GPIOB, &pin);
+			pin.GPIO_PinNumber		= USART3_CTS;
+			MCAL_GPIO_Init(USART3_PORT, &pin);
 		}
+	}
+	else
+	{
+
 	}
 }
 
@@ -320,8 +336,8 @@ void MCAL_USART_Stop(USART_TypeDef *USARTx)
 }
 
 /**================================================================
- * @Fn				- MCAL_USART_sendData
- * @brief			- send one byte.
+ * @Fn				- MCAL_USART_sendData_IT
+ * @brief			- send one byte using interrupt technique.
  * @param [in] 		- USARTx: This specifies which USART is used for configuration where x = 1, 2, or 3.
  * @param [in] 		- pTxBuffer: the byte to be sent.
  * @retval 			- None.
@@ -330,7 +346,7 @@ void MCAL_USART_Stop(USART_TypeDef *USARTx)
 void MCAL_USART_sendData_IT(USART_TypeDef *USARTx, uint8_t *pTxBuffer)
 {
 	/* check if 9 bit is enabled */
-	if(READ_BIT(USARTx->CR1, M))
+	if(READ_BIT(USARTx->CR1, M) == 1)
 	{
 		USARTx->DR			= *(uint16_t*)pTxBuffer & 0x1FF;
 	}
@@ -340,6 +356,14 @@ void MCAL_USART_sendData_IT(USART_TypeDef *USARTx, uint8_t *pTxBuffer)
 	}
 }
 
+/**================================================================
+ * @Fn				- MCAL_USART_sendBuffer
+ * @brief			- send bytes of certain size using polling technique.
+ * @param [in] 		- USARTx: This specifies which USART is used for configuration where x = 1, 2, or 3.
+ * @param [in] 		- pTxBuffer: a pointer to buffer to be sent.
+ * @retval 			- None.
+ * Note				- supports only asynchronous mode.
+ */
 void MCAL_USART_sendBuffer(USART_TypeDef *USARTx, uint8_t *pTxBuffer, uint32_t size)
 {
 	/* check if 9 bit is enabled */
@@ -348,7 +372,7 @@ void MCAL_USART_sendBuffer(USART_TypeDef *USARTx, uint8_t *pTxBuffer, uint32_t s
 	uint32_t index;
 
 
-	if(READ_BIT(USARTx->CR1, M))
+	if(READ_BIT(USARTx->CR1, M) == 1)
 	{
 		p9BitsData = (uint16_t*)pTxBuffer;
 	}
@@ -359,22 +383,27 @@ void MCAL_USART_sendBuffer(USART_TypeDef *USARTx, uint8_t *pTxBuffer, uint32_t s
 
 	for(index = 0; index < size; index++)
 	{
-		while(!READ_BIT(USARTx->SR, TXE));
+		while(!READ_BIT(USARTx->SR, TXE))
+		{
+
+		}
 
 		if(p9BitsData == NULL)
 		{
-			USARTx->DR = (*p8BitsData++ & 0xFF);
+			USARTx->DR = (*p8BitsData & 0xFF);
+			p8BitsData++;
 		}
 		else
 		{
-			USARTx->DR = (*p9BitsData++ & 0x1FF);
+			USARTx->DR = (*p9BitsData & 0x1FF);
+			p9BitsData++;
 		}
 	}
 }
 
 /**================================================================
- * @Fn				- MCAL_USART_receiveData
- * @brief			- receive one byte.
+ * @Fn				- MCAL_USART_receiveData_IT
+ * @brief			- receive one byte using interrupt technique.
  * @param [in] 		- USARTx: This specifies which USART is used for configuration where x = 1, 2, or 3.
  * @param [in] 		- pRxBuffer: a pointer to the byte to be received.
  * @retval 			- None.
@@ -382,7 +411,7 @@ void MCAL_USART_sendBuffer(USART_TypeDef *USARTx, uint8_t *pTxBuffer, uint32_t s
  */
 void MCAL_USART_receiveData_IT(USART_TypeDef *USARTx, uint8_t *pRxBuffer)
 {
-	if(READ_BIT(USARTx->CR1, M))
+	if(READ_BIT(USARTx->CR1, M) == 1)
 	{
 		*(uint16_t*)pRxBuffer = USARTx->DR & ((~(READ_BIT(USARTx->CR1, PCE) << 8)) & 0x1FF );
 	}
@@ -392,14 +421,21 @@ void MCAL_USART_receiveData_IT(USART_TypeDef *USARTx, uint8_t *pRxBuffer)
 	}
 }
 
-
+/**================================================================
+ * @Fn				- MCAL_USART_receiveBuffer
+ * @brief			- receive bytes with a certain size using Polling technique.
+ * @param [in] 		- USARTx: This specifies which USART is used for configuration where x = 1, 2, or 3.
+ * @param [in] 		- pRxBuffer: a pointer to the buffer to receive in.
+ * @retval 			- None.
+ * Note				- supports only asynchronous mode.
+ */
 void MCAL_USART_receiveBuffer(USART_TypeDef *USARTx, uint8_t *pRxBuffer, uint32_t size)
 {
 	uint32_t index;
 	uint16_t *p9BitsData = NULL;
 	uint8_t *p8BitsData = NULL;
 
-	if(READ_BIT(USARTx->CR1, M))
+	if(READ_BIT(USARTx->CR1, M) == 1)
 	{
 		p9BitsData = (uint16_t*)pRxBuffer;
 	}
@@ -410,17 +446,22 @@ void MCAL_USART_receiveBuffer(USART_TypeDef *USARTx, uint8_t *pRxBuffer, uint32_
 
 	for(index = 0; index < size; index++)
 	{
-		while(!READ_BIT(USARTx->SR, RXNE));
+		while(!READ_BIT(USARTx->SR, RXNE))
+		{
+
+		}
 
 		if(NULL != p8BitsData)
 		{
-			*p8BitsData++	=	USARTx->DR;
+			*p8BitsData	=	USARTx->DR;
+			p8BitsData++;
 		}
 		else
 		{
-			*p9BitsData++	=	USARTx->DR;
+			*p9BitsData	=	USARTx->DR;
+			p9BitsData++;
 		}
-//		pRxBuffer[index]			= USARTx->DR;
+		//		pRxBuffer[index]			= USARTx->DR;
 	}
 }
 
@@ -433,18 +474,32 @@ void MCAL_USART_receiveBuffer(USART_TypeDef *USARTx, uint8_t *pRxBuffer, uint32_
  */
 void MCAL_UART_WAIT_TransmitComplete(USART_TypeDef* USARTx)
 {
-	while(!READ_BIT(USARTx->SR, TC));
+	while(!READ_BIT(USARTx->SR, TC))
+	{
+
+	}
 }
 
-
+/**================================================================
+ * @Fn				- MCAL_USART_sendString
+ * @brief			- send 8 bit string.
+ * @param [in] 		- USARTx: This specifies which USART is used for configuration where x = 1, 2, or 3.
+ * @param [in] 		- pString: a pointer to the string.
+ * @retval 			- None.
+ * Note				- supports only asynchronous mode.
+ */
 void MCAL_USART_sendString(USART_TypeDef *USARTx, uint8_t *pString)
 {
 	while(*pString != '\0')
 	{
-		while(!READ_BIT(USARTx->SR, TXE));
+		while(!READ_BIT(USARTx->SR, TXE))
+		{
 
-		USARTx->DR = (*pString++ & 0xFF);
-//		MCAL_USART_sendData_IT(USARTx, *pString++);
+		}
+
+		USARTx->DR = (*pString & 0xFF);
+		pString++;
+		//		MCAL_USART_sendData_IT(USARTx, *pString++);
 	}
 }
 
@@ -456,22 +511,22 @@ void MCAL_USART_sendString(USART_TypeDef *USARTx, uint8_t *pString)
 
 void USART1_IRQHandler(void)
 {
-	if(READ_BIT(USART1->CR1, TXEIE))
+	if(READ_BIT(USART1->CR1, TXEIE) == 1)
 	{
 		USART1_TransmitBufferEmpty_CallBack();
 	}
 
-	if(READ_BIT(USART1->CR1, TCIE))
+	if(READ_BIT(USART1->CR1, TCIE) == 1)
 	{
 		USART1_TransmissionComplete_CallBack();
 	}
 
-	if(READ_BIT(USART1->CR1, RXNEIE))
+	if(READ_BIT(USART1->CR1, RXNEIE) == 1)
 	{
 		USART1_ReceiveBufferNotEmpty_CallBack();
 	}
 
-	if(READ_BIT(USART1->CR1, PEIE))
+	if(READ_BIT(USART1->CR1, PEIE) == 1)
 	{
 		USART1_ParityError_CallBack();
 	}
@@ -479,22 +534,22 @@ void USART1_IRQHandler(void)
 
 void USART2_IRQHandler(void)
 {
-	if(READ_BIT(USART2->CR1, TXE))
+	if(READ_BIT(USART2->CR1, TXE) == 1)
 	{
 		USART2_TransmitBufferEmpty_CallBack();
 	}
 
-	if(READ_BIT(USART2->CR1, TC))
+	if(READ_BIT(USART2->CR1, TC) == 1)
 	{
 		USART2_TransmissionComplete_CallBack();
 	}
 
-	if(READ_BIT(USART2->CR1, RXNE))
+	if(READ_BIT(USART2->CR1, RXNE) == 1)
 	{
 		USART2_ReceiveBufferNotEmpty_CallBack();
 	}
 
-	if(READ_BIT(USART2->CR1, PE))
+	if(READ_BIT(USART2->CR1, PE) == 1)
 	{
 		USART2_ParityError_CallBack();
 	}
@@ -502,22 +557,22 @@ void USART2_IRQHandler(void)
 
 void USART3_IRQHandler(void)
 {
-	if(READ_BIT(USART3->CR1, TXE))
+	if(READ_BIT(USART3->CR1, TXE) == 1)
 	{
 		USART3_TransmitBufferEmpty_CallBack();
 	}
 
-	if(READ_BIT(USART3->CR1, TC))
+	if(READ_BIT(USART3->CR1, TC) == 1)
 	{
 		USART3_TransmissionComplete_CallBack();
 	}
 
-	if(READ_BIT(USART3->CR1, RXNE))
+	if(READ_BIT(USART3->CR1, RXNE) == 1)
 	{
 		USART3_ReceiveBufferNotEmpty_CallBack();
 	}
 
-	if(READ_BIT(USART3->CR1, PE))
+	if(READ_BIT(USART3->CR1, PE) == 1)
 	{
 		USART3_ParityError_CallBack();
 	}
@@ -534,22 +589,34 @@ void USART3_IRQHandler(void)
 // =============================================
 __attribute__((weak)) void USART1_TransmitBufferEmpty_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+
+	}
 }
 
 __attribute__((weak)) void USART1_TransmissionComplete_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+
+	}
 }
 
 __attribute__((weak)) void USART1_ReceiveBufferNotEmpty_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+
+	}
 }
 
 __attribute__((weak)) void USART1_ParityError_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+
+	}
 }
 
 
@@ -558,22 +625,34 @@ __attribute__((weak)) void USART1_ParityError_CallBack(void)
 // =============================================
 __attribute__((weak)) void USART2_TransmitBufferEmpty_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 __attribute__((weak)) void USART2_TransmissionComplete_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 __attribute__((weak)) void USART2_ReceiveBufferNotEmpty_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 __attribute__((weak)) void USART2_ParityError_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 
@@ -582,20 +661,32 @@ __attribute__((weak)) void USART2_ParityError_CallBack(void)
 // =============================================
 __attribute__((weak)) void USART3_TransmitBufferEmpty_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 __attribute__((weak)) void USART3_TransmissionComplete_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 __attribute__((weak)) void USART3_ReceiveBufferNotEmpty_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }
 
 __attribute__((weak)) void USART3_ParityError_CallBack(void)
 {
-	while(1);
+	while(1)
+	{
+		
+	}
 }

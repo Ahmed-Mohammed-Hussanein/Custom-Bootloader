@@ -5,8 +5,8 @@
  *      Author: Ahmed
  */
 
-#ifndef INC_STM32F103C6_USART_DRIVER_H_
-#define INC_STM32F103C6_USART_DRIVER_H_
+#ifndef INC_STM32F103C8_USART_DRIVER_H_
+#define INC_STM32F103C8_USART_DRIVER_H_
 
 // =============================================
 // ================== Includes =================
@@ -146,4 +146,4 @@ void USART3_ParityError_CallBack(void);
 // TODO MCAL_USART_Init()		// Synchronous
 // TODO MCAL_USART_DMA_Init()	// Multi-buffer communication
 
-#endif /* INC_STM32F103C6_USART_DRIVER_H_ */
+#endif /* INC_STM32F103C8_USART_DRIVER_H_ */
