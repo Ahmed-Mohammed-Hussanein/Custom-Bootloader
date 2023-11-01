@@ -39,11 +39,19 @@ typedef struct
 #define FLASH_PROGRAMMING_TYPE_DOUBLE_WORD			3
 
 
+/* The difference between 2 consecutive pages */
+#define FLASH_PAGES_OFFSET							0x400UL
+
+
+#define FLASH_PAGE_ADDRESS_MAP(pageNumber)		(FLASH_BASE + FLASH_PAGES_OFFSET * pageNumber)
+
+
 // ===================================================
 // ================== APIs Functions =================
 // ===================================================
 void MCAL_FLASH_MassErase(void);
-void MCAL_FLASH_PageErase(uint32_t address);
+void MCAL_FLASH_PageErase(uint32_t startPage, uint32_t numberOfPages);
+void MCAL_FLASH_PageErase2(uint32_t address);
 
 void MCAL_FLASH_Programming(uint16_t *address, uint64_t Data, uint8_t programmingType);
 

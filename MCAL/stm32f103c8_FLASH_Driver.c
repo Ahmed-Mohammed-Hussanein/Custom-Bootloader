@@ -119,7 +119,7 @@ void MCAL_FLASH_MassErase(void)
 	MCAL_Flash_UnLock();
 
 	// check if there is no operation --> check BSY flag.
-	while(READ_BIT(FLASH->SR, BSY) != 0)
+	while(READ_BIT(FLASH->SR, BSY) == 1)
 	{
 
 	}
@@ -131,7 +131,7 @@ void MCAL_FLASH_MassErase(void)
 	SET_BIT(FLASH->CR, STRT);
 
 	// Wait for the BSY bit to be reset.
-	while(READ_BIT(FLASH->SR, BSY) != 0)
+	while(READ_BIT(FLASH->SR, BSY) == 1)
 	{
 
 	}
@@ -153,13 +153,53 @@ void MCAL_FLASH_MassErase(void)
  * @retval 			- None.
  * Note				- None.
  */
-void MCAL_FLASH_PageErase(uint32_t address)
+void MCAL_FLASH_PageErase(uint32_t startPage, uint32_t numberOfPages)
+{
+	uint32_t index;
+	uint32_t stopCondition;
+
+	// Unlock Flash
+	MCAL_Flash_UnLock();
+
+	// check if there is no operation --> check BSY flag.
+	while(READ_BIT(FLASH->SR, BSY) == 1)
+	{
+
+	}
+
+	// Set the PER bit in the FLASH_CR register.
+	SET_BIT(FLASH->CR, PER);
+
+	stopCondition = numberOfPages + startPage;
+	for(index = startPage; index < stopCondition; index++)
+	{
+		// Program the FLASH_AR register to select a page to erase.
+		FLASH->AR	=	FLASH_PAGE_ADDRESS_MAP(index);
+
+		// Set the STRT bit in the FLASH_CR register.
+		SET_BIT(FLASH->CR, STRT);
+
+		// Wait for the BSY bit to be reset.
+		while(READ_BIT(FLASH->SR, BSY) == 1)
+		{
+
+		}
+	}
+
+	// Clear the PER bit in the FLASH_CR register.
+	CLEAR_BIT(FLASH->CR, PER);
+
+	// lock the flash
+	MCAL_Flash_Lock();
+}
+
+void MCAL_FLASH_PageErase2(uint32_t startPage)
 {
 	// Unlock Flash
 	MCAL_Flash_UnLock();
 
 	// check if there is no operation --> check BSY flag.
-	while(READ_BIT(FLASH->SR, BSY) != 0)
+	while(READ_BIT(FLASH->SR, BSY) == 1)
 	{
 
 	}
@@ -168,22 +208,19 @@ void MCAL_FLASH_PageErase(uint32_t address)
 	SET_BIT(FLASH->CR, PER);
 
 	// Program the FLASH_AR register to select a page to erase.
-	FLASH->AR = address;
+	FLASH->AR = page_adress_map(startPage);
 
 	// Set the STRT bit in the FLASH_CR register.
 	SET_BIT(FLASH->CR, STRT);
 
 	// Wait for the BSY bit to be reset.
-	while(READ_BIT(FLASH->SR, BSY) != 0)
+	while((READ_BIT(FLASH->SR, BSY) == 1))
 	{
 
 	}
 
 	// Clear the PER bit in the FLASH_CR register.
 	CLEAR_BIT(FLASH->CR, PER);
-
-	// Clear EOP
-	SET_BIT(FLASH->SR, EOP);
 
 	// lock the flash
 	MCAL_Flash_Lock();
@@ -200,7 +237,7 @@ void MCAL_FLASH_PageErase(uint32_t address)
 void MCAL_FLASH_Programming(uint16_t *address, uint64_t Data, uint8_t programmingType)
 {
 	uint8_t nIterations = (programmingType == FLASH_PROGRAMMING_TYPE_HALF_WORD) ? 1 :
-							(programmingType == FLASH_PROGRAMMING_TYPE_WORD) ? 2 : 4;
+			(programmingType == FLASH_PROGRAMMING_TYPE_WORD) ? 2 : 4;
 
 	uint16_t *pAddress = address;
 
