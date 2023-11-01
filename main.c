@@ -18,11 +18,12 @@
  */
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
-  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
+#warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-#include "stm32f103c6_USART_Driver.h"
+#include <stm32f103c8_USART_Driver.h>
 #include "custom_bootloader.h"
+#include "stm32f103c8_FLASH_Driver.h"
 
 void wait(uint8_t delay)
 {
@@ -35,12 +36,15 @@ int main(void)
 {
 	BL_Init();
 
-    /* Loop forever */
+	/* Loop forever */
 	while(1)
 	{
-		debug_message((uint8_t*)"Hello From Debug UART\r\n");
-		MCAL_USART_sendString(HOST_UART, (uint8_t*)"Welcome From Host UART\r\n");
-		wait(100);
+		//		debug_message((uint8_t*)"Hello From Debug UART\r\n");
+		//		MCAL_USART_sendString(HOST_UART, (uint8_t*)"Welcome From Host UART\r\n");
+		//		wait(100);
+
+		BL_listenToHost();
+
 
 	}
 }
