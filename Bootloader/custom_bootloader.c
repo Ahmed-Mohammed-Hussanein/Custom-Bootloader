@@ -6,14 +6,14 @@
  */
 
 
+#include "Utils.h"
 
 
-
+#include <stm32f103c8_CRC32_Driver.h>
+#include <stm32f103c8_USART_Driver.h>
 #include "Platform_Types.h"
 #include "stm32f10xxx_device_header.h"
-
-#include "stm32f103c6_USART_Driver.h"
-#include "stm32f103c6_CRC32_Driver.h"
+#include "stm32f103c8_FLASH_Driver.h"
 
 #include "custom_bootloader.h"
 
@@ -26,6 +26,22 @@
 
 int	vsprintf (char *__restrict, const char *__restrict, __VALIST)
 _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+
+
+void debug_message(uint8_t *format, ... )
+{
+	uint8_t debug_buffer[512] = {0};
+	va_list args;
+
+	va_start( args, format );
+
+	vsprintf( (char*)debug_buffer, (const char*)format, args );
+
+	MCAL_USART_sendString(DEBUG_UART, debug_buffer);
+
+	va_end( args ) ;
+}
+
 
 void debug_Init(void)
 {
@@ -43,20 +59,8 @@ void debug_Init(void)
 	MCAL_USART_GPIO_setPins(DEBUG_UART);
 
 	MCAL_USART_Start(DEBUG_UART);
-}
 
-void debug_message(uint8_t *format, ... )
-{
-	uint8_t debug_buffer[512] = {0};
-	va_list args;
-
-	va_start( args, format );
-
-	vsprintf( (char*)debug_buffer, (const char*)format, args );
-
-	MCAL_USART_sendString(DEBUG_UART, debug_buffer);
-
-	va_end( args ) ;
+	debug_message((uint8_t*)"UART Debuger is Initialized Successfully.\r\n");
 }
 
 #endif
@@ -97,10 +101,194 @@ void BL_Init(void)
 	MCAL_USART_Start(HOST_UART);
 
 	MCAL_CRC_clockEnable();
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"UART HOST is Initialized Successfully.\r\n");
+	debug_message((uint8_t*)"Bootloader is Started Successfully.\r\n\r\n");
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+}
+
+static uint8_t BL_CRC_Verify(uint8_t pBuffer[], uint32_t length, uint32_t receivedCRC)
+{
+	uint32_t calculatedCRC = MCAL_CRC_Calculate(pBuffer, length, CRC_DATA_SIZE_BYTE);
+
+	if(calculatedCRC == receivedCRC)
+	{
+		return BL_CRC_VERIFICATION_PASSED;
+	}
+
+	return BL_CRC_VERIFICATION_FAILED;
+}
+
+static void BL_sendACK(uint32_t length)
+{
+	uint8_t BL_ACK_buffer[2] = {BL_ACK, length};
+
+	MCAL_USART_sendBuffer(HOST_UART, BL_ACK_buffer, 2);
+}
+
+static void BL_sendNACK(void)
+{
+	uint8_t BL_NACK_buffer[1] = {BL_NACK};
+
+	MCAL_USART_sendBuffer(HOST_UART, BL_NACK_buffer, 1);
+}
+
+static void BL_getVersion(void)
+{
+	uint8_t BL_getVersion_buffer[4] = {BL_VENDOR_ID, BL_SW_MAJOR_VERSION,
+			BL_SW_MINOR_VERSION, BL_SW_PATCH_VERSION};
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"Bootloader Get Version.\n\r");
+	debug_message((uint8_t*)"Bootloader Vendor ID: %d.\n\r", BL_VENDOR_ID);
+	debug_message((uint8_t*)"Bootloader Version: %d.%d.%d\n\r", BL_VENDOR_ID
+			, BL_SW_MINOR_VERSION, BL_SW_PATCH_VERSION);
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+
+	/* Send Ack */
+	BL_sendACK(4);
+
+	/* Send Reply */
+	MCAL_USART_sendBuffer(HOST_UART, BL_getVersion_buffer, 4);
+}
+
+static void BL_getHelp(void)
+{
+	uint8_t BL_getHelp_buffer[BL_COMMANDS_NUMBER] = {BL_GET_VERSION, BL_GET_HELP,
+			BL_GET_CID, BL_GET_RDP_STATUS, BL_GO_TO_ADDR, BL_FLASH_ERASE, BL_MEM_WRITE, BL_EN_R_W_PROTECT,
+			BL_MEM_READ, BL_READ_SECTOR_STATUS, BL_OTP_READ, BL_DIS_R_W_PROTECT};
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"Bootloader Get Help For Supported Commands.\n\r");
+	debug_message((uint8_t*)"Bootloader Get Version						: 0x%X.\n\r", BL_GET_VERSION);
+	debug_message((uint8_t*)"Bootloader Get Help						: 0x%X.\n\r", BL_GET_HELP);
+	debug_message((uint8_t*)"Bootloader Get Chip ID						: 0x%X.\n\r", BL_GET_CID);
+	debug_message((uint8_t*)"Bootloader Flash Read Protection Level		: 0x%X.\n\r", BL_GET_RDP_STATUS);
+	debug_message((uint8_t*)"Bootloader Go To Address					: 0x%X.\n\r", BL_GO_TO_ADDR);
+	debug_message((uint8_t*)"Bootloader Flash Erase						: 0x%X.\n\r", BL_FLASH_ERASE);
+	debug_message((uint8_t*)"Bootloader Flash Write						: 0x%X.\n\r", BL_MEM_WRITE);
+	debug_message((uint8_t*)"Bootloader Enable Read Write protection	: 0x%X.\n\r", BL_EN_R_W_PROTECT);
+	debug_message((uint8_t*)"Bootloader Flash Read						: 0x%X.\n\r", BL_MEM_READ);
+	debug_message((uint8_t*)"Bootloader Read Sector Status				: 0x%X.\n\r", BL_READ_SECTOR_STATUS);
+	debug_message((uint8_t*)"Bootloader Read OTP Contents				: 0x%X.\n\r", BL_OTP_READ);
+	debug_message((uint8_t*)"Bootloader Disable Read Write protection	: 0x%X.\n\r", BL_DIS_R_W_PROTECT);
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+
+	/* Send Ack */
+	BL_sendACK(BL_COMMANDS_NUMBER);
+
+	/* Send Reply */
+	MCAL_USART_sendBuffer(HOST_UART, BL_getHelp_buffer, BL_COMMANDS_NUMBER);
+}
+
+static void BL_getCID(void)
+{
+	uint8_t BL_getCID_buffer[2] = {0};
+	BL_getCID_buffer[0]	=	DBG->MCU_IDCODE & 0xFF;
+	BL_getCID_buffer[1]	=	(DBG->MCU_IDCODE >> 8) & 0xF;
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"Bootloader Get Chip ID.\n\r");
+	debug_message((uint8_t*)"Bootloader Chip ID: 0x%X.\n\r", *(uint16_t*)&BL_getCID_buffer[0]);
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+
+	/* Send Ack */
+	BL_sendACK(2);
+
+	/* Send Reply */
+	MCAL_USART_sendBuffer(HOST_UART, BL_getCID_buffer, 2);
 }
 
 void BL_listenToHost(void)
 {
-	
+	uint8_t BL_HOST_Buffer[BL_HOST_BUFFER_SIZE];
+	uint8_t length_to_follow;
+	uint8_t checkedCRC;
+
+	/* Receive the length of the command */
+	MCAL_USART_receiveBuffer(HOST_UART, BL_HOST_Buffer, 1);
+	length_to_follow = BL_HOST_Buffer[0];
+
+	/* Receive the remaining of the command */
+	MCAL_USART_receiveBuffer(HOST_UART, &BL_HOST_Buffer[1], length_to_follow);
+
+	/* CRC Verification */
+	checkedCRC = BL_CRC_Verify(BL_HOST_Buffer, length_to_follow - 4 + 1, *(uint32_t*)&BL_HOST_Buffer[length_to_follow - 4 + 1]);
+
+	if(checkedCRC == BL_CRC_VERIFICATION_FAILED)
+	{
+
+#ifdef DEBUG_MODE
+
+		debug_message((uint8_t*)"CRC Verification Failed. 0x%X 0x%X\n\r\n\r", checkedCRC, *(uint32_t*)&BL_HOST_Buffer[length_to_follow - 4 + 1]);
+
+#endif
+
+		/* Send Not Ack */
+		BL_sendNACK();
+		return;
+	}
+
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"CRC Verification Pass.\n\r\n\r");
+
+#endif
+
+	switch(BL_HOST_Buffer[1])
+	{
+	case BL_GET_VERSION:
+		BL_getVersion();
+		break;
+
+	case BL_GET_HELP:
+		BL_getHelp();
+		break;
+
+	case BL_GET_CID:
+		BL_getCID();
+		break;
+
+	case BL_GET_RDP_STATUS:
+		break;
+
+	case BL_GO_TO_ADDR:
+		break;
+
+	case BL_FLASH_ERASE:
+		break;
+
+	case BL_MEM_WRITE:
+		break;
+
+	case BL_EN_R_W_PROTECT:
+		break;
+
+	case BL_MEM_READ:
+		break;
+
+	case BL_READ_SECTOR_STATUS:
+		break;
+
+	case BL_OTP_READ:
+		break;
+
+	case BL_DIS_R_W_PROTECT:
+		break;
+	}
 
 }
