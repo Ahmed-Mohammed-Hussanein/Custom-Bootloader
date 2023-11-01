@@ -18,102 +18,102 @@
 // ==========================================================
 // ================== Memory Base Addresses =================
 // ==========================================================
-#define FLASH_BASE				0x08000000
-#define SYSTEM_MEMORY_BASE		0x1FFFF000
-#define SRAM_BASE				0x20000000
+#define FLASH_BASE				0x08000000UL
+#define SYSTEM_MEMORY_BASE		0x1FFFF000UL
+#define SRAM_BASE				0x20000000UL
 
 // ==============================================================
 // ================== Peripheral Base Addresses =================
 // ==============================================================
 
-#define NVIC_BASE				0xE000E100
+#define NVIC_BASE				0xE000E100UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* CRC32 -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define CRC_BASE				0x40023000
+#define CRC_BASE				0x40023000UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* AFIO -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define	AFIO_BASE				0x40010000
+#define	AFIO_BASE				0x40010000UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* EXTI -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define EXTI_BASE				0x40010400
+#define EXTI_BASE				0x40010400UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* GPIO -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define	GPIOA_BASE				0x40010800
-#define	GPIOB_BASE				0x40010C00
-#define	GPIOC_BASE				0x40011000
-#define	GPIOD_BASE				0x40011400
-#define	GPIOE_BASE				0x40011800
+#define	GPIOA_BASE				0x40010800UL
+#define	GPIOB_BASE				0x40010C00UL
+#define	GPIOC_BASE				0x40011000UL
+#define	GPIOD_BASE				0x40011400UL
+#define	GPIOE_BASE				0x40011800UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* bxCAN -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define CAN_CSR_BASE					0x40006400
-#define CAN_TXMBR0_BASE					(0x40006400 + 0x180)
-#define CAN_TXMBR1_BASE					(0x40006400 + 0x190)
-#define CAN_TXMBR2_BASE					(0x40006400 + 0x1A0)
-#define CAN_RXFIFO0_BASE				(0x40006400 + 0x1B0)
-#define CAN_RXFIFO1_BASE				(0x40006400 + 0x1C0)
-#define CAN_FLTR_CONFIG_BASE			(0x40006400 + 0x200)
-#define CAN_FILTERS_BASE				(0x40006400 + 0x240)
+#define CAN_CSR_BASE					0x40006400UL
+#define CAN_TXMBR0_BASE					(0x40006400UL + 0x180UL)
+#define CAN_TXMBR1_BASE					(0x40006400UL + 0x190UL)
+#define CAN_TXMBR2_BASE					(0x40006400UL + 0x1A0UL)
+#define CAN_RXFIFO0_BASE				(0x40006400UL + 0x1B0UL)
+#define CAN_RXFIFO1_BASE				(0x40006400UL + 0x1C0UL)
+#define CAN_FLTR_CONFIG_BASE			(0x40006400UL + 0x200UL)
+#define CAN_FILTERS_BASE				(0x40006400UL + 0x240UL)
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* ADC -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define ADC1_BASE						(0x40012400)
-#define ADC2_BASE						(0x40012800)
+#define ADC1_BASE						(0x40012400UL)
+#define ADC2_BASE						(0x40012800UL)
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* TIMER 2 to 5 -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-#define TIM2_BASE						(0x40000000)
-#define TIM3_BASE						(0x40000400)
-#define TIM4_BASE						(0x40000800)
-#define TIM5_BASE						(0x40000C00)
+#define TIM2_BASE						(0x40000000UL)
+#define TIM3_BASE						(0x40000400UL)
+#define TIM4_BASE						(0x40000800UL)
+#define TIM5_BASE						(0x40000C00UL)
 
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* RCC -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define RCC_BASE				0x40021000
+#define RCC_BASE				0x40021000UL
 
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* FPEC -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define FPEC_BASE				0x40022000
+#define FPEC_BASE				0x40022000UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* USART -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define USART1_BASE				0x40013800
-#define USART2_BASE				0x40004400
-#define USART3_BASE				0x40004800
+#define USART1_BASE				0x40013800UL
+#define USART2_BASE				0x40004400UL
+#define USART3_BASE				0x40004800UL
 
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* SPI -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define SPI1_BASE				0x40013000
-#define SPI2_BASE				0x40003800
+#define SPI1_BASE				0x40013000UL
+#define SPI2_BASE				0x40003800UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* I2C -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define I2C1_BASE				0x40005400
-#define I2C2_BASE				0x40005800
+#define I2C1_BASE				0x40005400UL
+#define I2C2_BASE				0x40005800UL
 
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
 // -*-*-*-*-* DBG -*-*-*-*-*
 // *-*-*-*-*-*-*-*-*-*-*-*-*-
-#define DBG_BASE				0xE0042000
+#define DBG_BASE				0xE0042000UL
 
 
 // =========================================================
