@@ -113,14 +113,16 @@ void BL_Init(void)
 
 static uint8_t BL_CRC_Verify(uint8_t pBuffer[], uint32_t length, uint32_t receivedCRC)
 {
+	uint8_t CRC_state = BL_CRC_VERIFICATION_FAILED;
+
 	uint32_t calculatedCRC = MCAL_CRC_Calculate(pBuffer, length, CRC_DATA_SIZE_BYTE);
 
 	if(calculatedCRC == receivedCRC)
 	{
-		return BL_CRC_VERIFICATION_PASSED;
+		CRC_state = BL_CRC_VERIFICATION_PASSED;
 	}
 
-	return BL_CRC_VERIFICATION_FAILED;
+	return CRC_state;
 }
 
 static void BL_sendACK(uint32_t length)
@@ -212,6 +214,79 @@ static void BL_getCID(void)
 	MCAL_USART_sendBuffer(HOST_UART, BL_getCID_buffer, 2);
 }
 
+
+static void BL_flashErase(uint8_t pBuffer[])
+{
+	uint32_t startPage;
+	uint32_t numberOfPages;
+	uint8_t BL_flashErase_buffer[1] = {0};
+	BL_flashErase_buffer[0]	=	SUCCESSFUL_ERASE;
+
+	startPage		= pBuffer[0];
+	numberOfPages 	= (pBuffer[1] > (128 - startPage)) ? (128 - startPage) : pBuffer[1];
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"Bootloader Flash Erase.\n\r");
+	debug_message((uint8_t*)"The Page Number		: %d.\n\r", startPage);
+	debug_message((uint8_t*)"The Number of pages	: %d.\n\r", numberOfPages);
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+
+	MCAL_FLASH_PageErase(startPage, numberOfPages);
+
+	/* Send Ack */
+	BL_sendACK(1);
+
+	/* Send Reply */
+	MCAL_USART_sendBuffer(HOST_UART, BL_flashErase_buffer, 1);
+}
+
+static void BL_flashWrite(uint8_t pBuffer[])
+{
+	uint32_t index;
+	uint16_t *pPayload		= (uint16_t*)&pBuffer[5];
+	uint16_t *baseAddress 	= (uint16_t*)(*(uint32_t*)&pBuffer[0]);
+	uint32_t payloadLength	= pBuffer[4];
+
+	uint8_t BL_flashErase_buffer[1] = {0};
+	BL_flashErase_buffer[0]	=	FLASH_PAYLOAD_WRITE_PASSED;
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"Bootloader Flash Write.\n\r");
+	debug_message((uint8_t*)"The Base Address		: 0x%x.\n\r", baseAddress);
+	debug_message((uint8_t*)"The Payload Length		: %u.\n\r", payloadLength);
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+
+	payloadLength /= 2;
+
+	MCAL_Flash_UnLock();
+	for(index = 0; index < payloadLength; index++)
+	{
+		MCAL_FLASH_Programming(baseAddress, *pPayload, FLASH_PROGRAMMING_TYPE_HALF_WORD);
+		baseAddress++;
+		pPayload++;
+	}
+	MCAL_Flash_Lock();
+
+#ifdef DEBUG_MODE
+
+	debug_message((uint8_t*)"Data is Written Successfully.\n\r");
+	debug_message((uint8_t*)"\r\n==================================================================\n\r");
+
+#endif
+
+	/* Send Ack */
+	BL_sendACK(1);
+
+	/* Send Reply */
+	MCAL_USART_sendBuffer(HOST_UART, BL_flashErase_buffer, 1);
+}
+
 void BL_listenToHost(void)
 {
 	uint8_t BL_HOST_Buffer[BL_HOST_BUFFER_SIZE];
@@ -270,9 +345,11 @@ void BL_listenToHost(void)
 		break;
 
 	case BL_FLASH_ERASE:
+		BL_flashErase(&BL_HOST_Buffer[2]);
 		break;
 
 	case BL_MEM_WRITE:
+		BL_flashWrite(&BL_HOST_Buffer[2]);
 		break;
 
 	case BL_EN_R_W_PROTECT:
